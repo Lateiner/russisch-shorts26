@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch Übung: Umgangssprache vs. Hochsprache</title>
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --success-color: #2ecc71;
+            --error-color: #e74c3c;
+            --bg-color: #f5f7fa;
+            --card-bg: #ffffff;
+            --text-color: #2c3e50;
+            --border-color: #dcdde1;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            text-align: center;
+            color: var(--primary-color);
+        }
+
+        p.instruction {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #7f8c8d;
+            font-size: 0.95rem;
+        }
+
+        .game-area {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 600px) {
+            .game-area {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+            
+            .column-header {
+                margin-bottom: 10px;
+                text-align: center;
+                background: #e1b12c;
+                color: white;
+                padding: 5px;
+                border-radius: 4px;
+            }
+        }
+
+        .column {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .column-header {
+            font-weight: bold;
+            text-align: center;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--border-color);
+            font-size: 1.1rem;
+        }
+
+        .draggable-item {
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            padding: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            font-size: 1.1rem;
+            transition: all 0.2s ease;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        /* Hover-Effekt nur auf Geräten mit Maus */
+        @media (hover: hover) {
+            .draggable-item:hover:not(.matched) {
+                border-color: var(--primary-color);
+                background-color: #f0f7ff;
+                transform: translateY(-2px);
+            }
+        }
+
+        .draggable-item.selected {
+            border-color: var(--primary-color);
+            background-color: #e3f2fd;
+            box-shadow: 0 0 10px rgba(74, 144, 226, 0.3);
+        }
+
+        .draggable-item.matched {
+            background-color: #e8f8f5;
+            border-color: var(--success-color);
+            color: #27ae60;
+            cursor: default;
+        }
+
+        .draggable-item.error {
+            animation: shake 0.4s ease;
+            border-color: var(--error-color);
+            background-color: #fdedec;
+        }
+
+        .feedback {
+            text-align: center;
+            min-height: 30px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+
+        .btn-reset {
+            display: block;
+            width: 200px;
+            margin: 0 auto;
+            padding: 12px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: none;
+        }
+
+        .btn-reset:hover {
+            background-color: #357abd;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-6px); }
+            40%, 80% { transform: translateX(6px); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Verbindung von Umgangssprache & Hochsprache</h1>
+    <p class="instruction">Tippe zuerst auf einen Satz der Umgangssprache (links) und danach auf den passenden Satz der Hochsprache (rechts).</p>
+
+    <div class="game-area">
+        <!-- Spalte Umgangssprache -->
+        <div class="column" id="slang-column">
+            <div class="column-header">Umgangssprache (куча)</div>
+            <!-- Wird per JS befüllt -->
+        </div>
+
+        <!-- Spalte Hochsprache -->
+        <div class="column" id="formal-column">
+            <div class="column-header">Hochsprache (много)</div>
+            <!-- Wird per JS befüllt -->
+        </div>
+    </div>
+
+    <div class="feedback" id="feedback-message"></div>
+    <button class="btn-reset" id="reset-btn" onclick="initGame()">Nochmal versuchen</button>
+</div>
+
+<script>
+    // Die Datenpaare mit eindeutigen IDs für die Zuordnung
+    const pairs = [
+        {
+            id: 1,
+            slang: "У меня сегодня куча работы.",
+            formal: "У меня сегодня много работы."
+        },
+        {
+            id: 2,
+            slang: "Я слышал, что у тебя куча денег.",
+            formal: "Я слышал, что у тебя много денег."
+        }
+    ];
+
+    let selectedSlangItem = null;
+    let matchedCount = 0;
+
+    // Hilfsfunktion zum Mischen der Arrays (für Abwechslung beim Neuladen)
+    function shuffle(array) {
+        return array.sort(() => Math.random() - 0.5);
+    }
+
+    function initGame() {
+        const slangColumn = document.getElementById('slang-column');
+        const formalColumn = document.getElementById('formal-column');
+        const feedback = document.getElementById('feedback-message');
+        const resetBtn = document.getElementById('reset-btn');
+
+        // Reset Status
+        slangColumn.innerHTML = '<div class="column-header">Umgangssprache (куча)</div>';
+        formalColumn.innerHTML = '<div class="column-header">Hochsprache (много)</div>';
+        feedback.textContent = '';
+        feedback.style.color = 'inherit';
+        resetBtn.style.display = 'none';
+        selectedSlangItem = null;
+        matchedCount = 0;
+
+        // Kopien erstellen und mischen, damit die Paare nicht direkt nebeneinander stehen
+        const slangItems = shuffle([...pairs]);
+        const formalItems = shuffle([...pairs]);
+
+        // Umgangssprache-Elemente erzeugen
+        slangItems.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'draggable-item';
+            div.textContent = item.slang;
+            div.dataset.id = item.id;
+            div.onclick = () => selectSlang(div);
+            slangColumn.appendChild(div);
+        });
+
+        // Hochsprache-Elemente erzeugen
+        formalItems.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'draggable-item';
+            div.textContent = item.formal;
+            div.dataset.id = item.id;
+            div.onclick = () => selectFormal(div);
+            formalColumn.appendChild(div);
+        });
+    }
+
+    function selectSlang(element) {
+        if (element.classList.contains('matched')) return;
+
+        // Falls schon eines ausgewählt war, Selektion aufheben
+        if (selectedSlangItem) {
+            selectedSlangItem.classList.remove('selected');
+        }
+
+        selectedSlangItem = element;
+        element.classList.add('selected');
+        document.getElementById('feedback-message').textContent = "Wähle nun das passende Gegenstück in der Hochsprache.";
+        document.getElementById('feedback-message').style.color = "var(--primary-color)";
+    }
+
+    function selectFormal(element) {
+        if (element.classList.contains('matched') || !selectedSlangItem) return;
+
+        const slangId = selectedSlangItem.dataset.id;
+        const formalId = element.dataset.id;
+        const feedback = document.getElementById('feedback-message');
+
+        if (slangId === formalId) {
+            // Richtig gelöst
+            selectedSlangItem.classList.remove('selected');
+            selectedSlangItem.classList.add('matched');
+            element.classList.add('matched');
+            
+            selectedSlangItem = null;
+            matchedCount++;
+
+            feedback.textContent = "Richtig kombiniert! 🎉";
+            feedback.style.color = "var(--success-color)";
+
+            // Prüfen, ob alle Paare gefunden wurden
+            if (matchedCount === pairs.length) {
+                feedback.textContent = "Super! Du hast alle Paare richtig zugeordnet! 🌟";
+                document.getElementById('reset-btn').style.display = 'block';
+            }
+        } else {
+            // Falsch gelöst
+            element.classList.add('error');
+            selectedSlangItem.classList.add('error');
+            feedback.textContent = "Das passt nicht zusammen. Versuch es noch einmal!";
+            feedback.style.color = "var(--error-color)";
+
+            // Fehler-Animation nach kurzer Zeit zurücksetzen
+            const wrongSlang = selectedSlangItem;
+            setTimeout(() => {
+                element.classList.remove('error');
+                wrongSlang.classList.remove('error');
+            }, 400);
+        }
+    }
+
+    // Spiel beim Start initialisieren
+    window.onload = initGame;
+</script>
+
+</body>
+</html>
