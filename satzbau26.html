@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch Übung: Satzbau-Baukasten</title>
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --success-color: #2ecc71;
+            --error-color: #e74c3c;
+            --bg-color: #f5f7fa;
+            --card-bg: #ffffff;
+            --text-color: #2c3e50;
+            --border-color: #dcdde1;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 700px;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+            text-align: center;
+            color: var(--primary-color);
+        }
+
+        .progress-text {
+            text-align: center;
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            margin-bottom: 20px;
+        }
+
+        p.instruction {
+            text-align: center;
+            margin-bottom: 25px;
+            font-size: 1rem;
+            font-weight: 500;
+            background: #f0f7ff;
+            padding: 10px;
+            border-radius: 6px;
+            color: #34495e;
+        }
+
+        /* Bereich für den bereits gebauten Satz */
+        .sentence-display {
+            min-height: 70px;
+            border: 2px dashed var(--primary-color);
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        /* Wort-Boxen */
+        .word-pool {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+            min-height: 60px;
+            margin-bottom: 30px;
+        }
+
+        .word-btn {
+            background-color: var(--card-bg);
+            border: 2px solid var(--border-color);
+            padding: 10px 18px;
+            border-radius: 6px;
+            font-size: 1.1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        @media (hover: hover) {
+            .word-btn:hover:not(.used) {
+                border-color: var(--primary-color);
+                background-color: #f0f7ff;
+                transform: translateY(-2px);
+            }
+        }
+
+        .word-btn.used {
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(0.8);
+        }
+
+        .word-btn.wrong {
+            animation: shake 0.4s ease;
+            border-color: var(--error-color);
+            background-color: #fdedec;
+            color: #c0392b;
+        }
+
+        .placed-word {
+            background-color: #e8f8f5;
+            border: 2px solid var(--success-color);
+            color: #27ae60;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            animation: popIn 0.2s ease;
+        }
+
+        /* Feedback- & Steuerungselemente */
+        .feedback-area {
+            text-align: center;
+            min-height: 40px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-next {
+            background-color: var(--success-color);
+            color: white;
+            display: none;
+        }
+
+        .btn-next:hover {
+            background-color: #27ae60;
+        }
+
+        .btn-reset {
+            background-color: #7f8c8d;
+            color: white;
+        }
+
+        .btn-reset:hover {
+            background-color: #6a7778;
+        }
+
+        /* Animationen */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-5px); }
+            40%, 80% { transform: translateX(5px); }
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Satzbau-Baukasten</h1>
+    <div class="progress-text" id="progress">Satz 1 von 6</div>
+    <p class="instruction" id="translation-hint">Übersetzung wird geladen...</p>
+
+    <!-- Hier baut sich der Satz auf -->
+    <div class="sentence-display" id="sentence-display"></div>
+
+    <!-- Hier liegen die verfügbaren Wörter -->
+    <div class="word-pool" id="word-pool"></div>
+
+    <div class="feedback-area" id="feedback-text"></div>
+
+    <div class="controls">
+        <button class="btn btn-next" id="next-btn" onclick="nextSentence()">Nächster Satz</button>
+        <button class="btn btn-reset" onclick="restartGame()">Neustart</button>
+    </div>
+</div>
+
+<script>
+    // Die 6 Sätze in exakter Reihenfolge
+    const sentences = [
+        {
+            correctOrder: ["У", "меня", "сегодня", "куча", "работы."],
+            hint: "Ich habe heute einen Haufen Arbeit. (Umgangssprache)"
+        },
+        {
+            correctOrder: ["У", "меня", "сегодня", "много", "работы."],
+            hint: "Ich habe heute viel Arbeit. (Hochsprache)"
+        },
+        {
+            correctOrder: ["Я", "слышал,", "что", "у", "тебя", "куча", "денег."],
+            hint: "Ich habe gehört, dass du einen Haufen Geld hast. (Umgangssprache)"
+        },
+        {
+            correctOrder: ["Я", "слышал,", "что", "у", "тебя", "много", "денег."],
+            hint: "Ich habe gehört, dass du viel Geld hast. (Hochsprache)"
+        },
+        {
+            correctOrder: ["У", "неё", "всегда", "куча", "планов."],
+            hint: "Sie hat immer einen Haufen Pläne."
+        },
+        {
+            correctOrder: ["У", "нас", "дома", "куча", "времени."],
+            hint: "Wir haben zu Hause einen Haufen Zeit."
+        }
+    ];
+
+    let currentSentenceIndex = 0;
+    let currentWordIndex = 0;
+
+    function initSentence() {
+        const currentSentence = sentences[currentSentenceIndex];
+        currentWordIndex = 0;
+
+        // UI-Aktualisierung
+        document.getElementById('progress').textContent = `Satz ${currentSentenceIndex + 1} von ${sentences.length}`;
+        document.getElementById('translation-hint').textContent = currentSentence.hint;
+        document.getElementById('sentence-display').innerHTML = '';
+        document.getElementById('feedback-text').textContent = '';
+        document.getElementById('next-btn').style.display = 'none';
+
+        // Wortpool erzeugen und mischen
+        const poolContainer = document.getElementById('word-pool');
+        poolContainer.innerHTML = '';
+
+        const shuffledWords = [...currentSentence.correctOrder].sort(() => Math.random() - 0.5);
+
+        shuffledWords.forEach((word, index) => {
+            const btn = document.createElement('button');
+            btn.className = 'word-btn';
+            btn.textContent = word;
+            btn.onclick = () => handleWordClick(btn, word);
+            poolContainer.appendChild(btn);
+        });
+    }
+
+    function handleWordClick(buttonElement, clickedWord) {
+        const currentSentence = sentences[currentSentenceIndex];
+        const expectedWord = currentSentence.correctOrder[currentWordIndex];
+
+        if (clickedWord === expectedWord) {
+            // Richtiges Wort angeklickt
+            buttonElement.classList.add('used');
+            
+            // Wort oben einfügen
+            const displayContainer = document.getElementById('sentence-display');
+            const wordSpan = document.createElement('span');
+            wordSpan.className = 'placed-word';
+            wordSpan.textContent = clickedWord;
+            displayContainer.appendChild(wordSpan);
+
+            currentWordIndex++;
+
+            // Prüfen, ob der Satz vollendet ist
+            if (currentWordIndex === currentSentence.correctOrder.length) {
+                handleSentenceComplete();
+            }
+        } else {
+            // Falsches Wort angeklickt -> Sofortiges negatives Feedback
+            buttonElement.classList.add('wrong');
+            setTimeout(() => {
+                buttonElement.classList.remove('wrong');
+            }, 400);
+        }
+    }
+
+    function handleSentenceComplete() {
+        const feedback = document.getElementById('feedback-text');
+        
+        if (currentSentenceIndex < sentences.length - 1) {
+            feedback.textContent = "Super! Satz fehlerfrei gebaut. 🎉";
+            feedback.style.color = "var(--success-color)";
+            document.getElementById('next-btn').style.display = 'block';
+        } else {
+            feedback.textContent = "Wahnsinn! Du hast alle 6 Sätze erfolgreich gemeistert! 🌟👏";
+            feedback.style.color = "var(--success-color)";
+        }
+    }
+
+    function nextSentence() {
+        if (currentSentenceIndex < sentences.length - 1) {
+            currentSentenceIndex++;
+            initSentence();
+        }
+    }
+
+    function restartGame() {
+        currentSentenceIndex = 0;
+        initSentence();
+    }
+
+    // Direkt beim Start laden
+    window.onload = initSentence;
+</script>
+
+</body>
+</html>
