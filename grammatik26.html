@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch Übung: Grammatikform finden</title>
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --success-color: #2ecc71;
+            --error-color: #e74c3c;
+            --bg-color: #f5f7fa;
+            --card-bg: #ffffff;
+            --text-color: #2c3e50;
+            --border-color: #dcdde1;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 650px;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            text-align: center;
+            color: var(--primary-color);
+        }
+
+        p.instruction {
+            text-align: center;
+            margin-bottom: 35px;
+            color: #7f8c8d;
+            font-size: 0.95rem;
+        }
+
+        .question-box {
+            background-color: #f8f9fa;
+            border-left: 5px solid var(--primary-color);
+            padding: 20px;
+            border-radius: 4px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .sentence {
+            font-size: 1.4rem;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+
+        .placeholder {
+            color: var(--primary-color);
+            font-weight: bold;
+            border-bottom: 2px dashed var(--primary-color);
+            padding: 0 10px;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        @media (min-width: 480px) {
+            .options-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        .option-btn {
+            background-color: var(--card-bg);
+            border: 2px solid var(--border-color);
+            padding: 15px 10px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            outline: none;
+        }
+
+        /* Hover-Effekte nur für Geräte mit Maus */
+        @media (hover: hover) {
+            .option-btn:hover:not(:disabled) {
+                border-color: var(--primary-color);
+                background-color: #f0f7ff;
+                transform: translateY(-2px);
+            }
+        }
+
+        .option-btn:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        .option-btn.correct {
+            background-color: #e8f8f5;
+            border-color: var(--success-color);
+            color: #27ae60;
+            font-weight: bold;
+        }
+
+        .option-btn.wrong {
+            background-color: #fdedec;
+            border-color: var(--error-color);
+            color: #c0392b;
+            opacity: 0.7;
+        }
+
+        .feedback-area {
+            text-align: center;
+            min-height: 60px;
+            margin-bottom: 20px;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 1.05rem;
+        }
+
+        .feedback-text {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .explanation-text {
+            font-size: 0.9rem;
+            color: #57606f;
+        }
+
+        .btn-next {
+            display: block;
+            width: 200px;
+            margin: 0 auto;
+            padding: 12px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: none;
+        }
+
+        .btn-next:hover {
+            background-color: #357abd;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Die richtige Grammatikform finden</h1>
+    <p class="instruction">Nach dem Wort „куча“ folgt ein bestimmter Fall. Wähle die richtige grammatikalische Endung aus!</p>
+
+    <div class="question-box">
+        <div class="sentence">У меня сегодня куча <span class="placeholder" id="sentence-target">...</span></div>
+    </div>
+
+    <div class="options-grid" id="options-container">
+        <!-- Optionen werden per JavaScript erzeugt -->
+    </div>
+
+    <div class="feedback-area" id="feedback-area">
+        <div class="feedback-text" id="feedback-title"></div>
+        <div class="explanation-text" id="feedback-explanation"></div>
+    </div>
+
+    <button class="btn-next" id="action-btn" onclick="resetExercise()">Nochmal versuchen</button>
+</div>
+
+<script>
+    // Konfiguration der Aufgabe
+    const questionData = {
+        correctAnswer: "работы",
+        explanation: "Richtig! Nach dem Wort куча (Haufen/Menge) steht das Substantiv immer im Genitiv (Genitiv von работа ist работы).",
+        options: [
+            { text: "работа", isCorrect: false },
+            { text: "работу", isCorrect: false },
+            { text: "работы", isCorrect: true }
+        ]
+    };
+
+    function initExercise() {
+        const optionsContainer = document.getElementById('options-container');
+        const sentenceTarget = document.getElementById('sentence-target');
+        const feedbackTitle = document.getElementById('feedback-title');
+        const feedbackExplanation = document.getElementById('feedback-explanation');
+        const actionBtn = document.getElementById('action-btn');
+
+        // Reset
+        optionsContainer.innerHTML = '';
+        sentenceTarget.textContent = '...';
+        sentenceTarget.style.color = 'var(--primary-color)';
+        feedbackTitle.textContent = '';
+        feedbackExplanation.textContent = '';
+        actionBtn.style.display = 'none';
+
+        // Optionen mischen für mehr Dynamik beim erneuten Versuch
+        const shuffledOptions = [...questionData.options].sort(() => Math.random() - 0.5);
+
+        // Buttons erstellen
+        shuffledOptions.forEach(option => {
+            const button = document.createElement('button');
+            button.className = 'option-btn';
+            button.textContent = option.text;
+            button.onclick = () => checkAnswer(button, option.isCorrect);
+            optionsContainer.appendChild(button);
+        });
+    }
+
+    function checkAnswer(selectedButton, isCorrect) {
+        const allButtons = document.querySelectorAll('.option-btn');
+        const sentenceTarget = document.getElementById('sentence-target');
+        const feedbackTitle = document.getElementById('feedback-title');
+        const feedbackExplanation = document.getElementById('feedback-explanation');
+        const actionBtn = document.getElementById('action-btn');
+
+        // Alle Buttons nach dem Klick deaktivieren
+        allButtons.forEach(btn => btn.disabled = true);
+
+        if (isCorrect) {
+            selectedButton.classList.add('correct');
+            sentenceTarget.textContent = questionData.correctAnswer;
+            sentenceTarget.style.color = 'var(--success-color)';
+            
+            feedbackTitle.textContent = "Hervorragend! 🎉";
+            feedbackTitle.style.color = "var(--success-color)";
+            feedbackExplanation.textContent = questionData.explanation;
+        } else {
+            selectedButton.classList.add('wrong');
+            
+            // Richtige Antwort trotzdem visuell hervorheben
+            allButtons.forEach(btn => {
+                if (btn.textContent === questionData.correctAnswer) {
+                    btn.classList.add('correct');
+                }
+            });
+
+            feedbackTitle.textContent = "Leider nicht richtig. 😕";
+            feedbackTitle.style.color = "var(--error-color)";
+            feedbackExplanation.textContent = "работа steht im Nominativ, работу im Akkusativ. Benötigt wird hier jedoch der Genitiv nach куча.";
+        }
+
+        // Zeige den Reset-Button an
+        actionBtn.style.display = 'block';
+    }
+
+    function resetExercise() {
+        initExercise();
+    }
+
+    // Beim Laden der Seite ausführen
+    window.onload = initExercise;
+</script>
+
+</body>
+</html>
