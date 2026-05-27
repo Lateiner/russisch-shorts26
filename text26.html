@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch Übung: Lückentext (Verständnis)</title>
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --success-color: #2ecc71;
+            --error-color: #e74c3c;
+            --bg-color: #f5f7fa;
+            --card-bg: #ffffff;
+            --text-color: #2c3e50;
+            --border-color: #dcdde1;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 650px;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+            text-align: center;
+            color: var(--primary-color);
+        }
+
+        .progress-text {
+            text-align: center;
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            margin-bottom: 25px;
+        }
+
+        /* Russischer Originalsatz */
+        .russian-context {
+            font-size: 1.3rem;
+            font-weight: 600;
+            text-align: center;
+            background: #f0f7ff;
+            padding: 15px;
+            border-radius: 8px;
+            color: #2980b9;
+            margin-bottom: 20px;
+            border: 1px solid #d4e6f1;
+        }
+
+        /* Deutscher Lückentext-Satz */
+        .sentence-box {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 25px 15px;
+            margin-bottom: 30px;
+            font-size: 1.2rem;
+            text-align: center;
+            font-weight: 500;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        /* Eingabefeld in der Lücke */
+        .gap-input {
+            border: none;
+            border-bottom: 2px dashed var(--primary-color);
+            background-color: transparent;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--text-color);
+            text-align: center;
+            padding: 2px 5px;
+            outline: none;
+            width: 130px;
+            transition: all 0.3s;
+        }
+
+        .gap-input:focus {
+            border-bottom-color: var(--primary-color);
+            background-color: #fff;
+        }
+
+        .gap-input.correct {
+            border-bottom-color: transparent;
+            background-color: #e8f8f5;
+            color: #27ae60;
+            border-radius: 4px;
+            padding: 2px 10px;
+        }
+
+        /* Feedback & Controls */
+        .feedback-area {
+            text-align: center;
+            min-height: 60px;
+            margin-bottom: 20px;
+        }
+
+        .feedback-title {
+            font-weight: bold;
+            font-size: 1.15rem;
+            margin-bottom: 5px;
+        }
+
+        .feedback-desc {
+            font-size: 0.9rem;
+            color: #57606f;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .btn-nav {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-next {
+            background-color: var(--success-color);
+            color: white;
+            display: none;
+        }
+
+        .btn-next:hover {
+            background-color: #27ae60;
+        }
+
+        .btn-reset {
+            background-color: #7f8c8d;
+            color: white;
+        }
+
+        .btn-reset:hover {
+            background-color: #6a7778;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Textverständnis & Übersetzung</h1>
+    <div class="progress-text" id="progress">Satz 1 von 6</div>
+
+    <!-- Russischer Ausgangssatz -->
+    <div class="russian-context" id="ru-text">Я слышал, что у тебя куча денег.</div>
+
+    <!-- Deutsche Lücke -->
+    <div class="sentence-box">
+        <span id="part-before">Ich habe gehört, dass du einen</span>
+        <input type="text" class="gap-input" id="gap-field" autocomplete="off" placeholder="hier tippen" oninput="checkLiveAnswer()">
+        <span id="part-after">Geld hast.</span>
+    </div>
+
+    <div class="feedback-area">
+        <div class="feedback-title" id="fb-title"></div>
+        <div class="feedback-desc" id="fb-desc"></div>
+    </div>
+
+    <div class="controls">
+        <button class="btn-nav btn-next" id="next-btn" onclick="nextSentence()">Nächster Satz</button>
+        <button class="btn-nav btn-reset" onclick="restartExercise()">Neustart</button>
+    </div>
+</div>
+
+<script>
+    const dataset = [
+        {
+            ru: "Я слышал, что у тебя куча денег.",
+            before: "Ich habe gehört, dass du einen",
+            after: "Geld hast.",
+            answers: ["haufen"], // Kleingeschrieben im Array für leichteren Abgleich
+            displayAnswer: "Haufen",
+            desc: "Genau! „куча“ bedeutet wörtlich „Haufen“ und beschreibt eine große, ungeordnete Menge."
+        },
+        {
+            ru: "У меня сегодня много работы.",
+            before: "Ich habe heute",
+            after: "Arbeit.",
+            answers: ["viel"],
+            displayAnswer: "viel",
+            desc: "Richtig! „много“ ist das neutrale, formelle Wort für „viel“."
+        },
+        {
+            ru: "У неё всегда куча планов.",
+            before: "Sie hat immer einen Haufen",
+            after: ".",
+            answers: ["pläne", "plänen"],
+            displayAnswer: "Pläne",
+            desc: "Klasse! „планов“ ist der Genitiv Plural von план (Plan)."
+        },
+        {
+            ru: "Я слышал, dass у тебя много денег.",
+            before: "Ich habe gehört, dass du viel",
+            after: "hast.",
+            answers: ["geld"],
+            displayAnswer: "Geld",
+            desc: "Sehr gut! „денег“ bedeutet Geld (im Genitiv Plural nach viel/много)."
+        },
+        {
+            ru: "У нас дома куча времени.",
+            before: "Wir haben zu Hause einen Haufen",
+            after: ".",
+            answers: ["zeit"],
+            displayAnswer: "Zeit",
+            desc: "Perfekt! „времени“ ist die Genitivform des unzählbaren Nomens время (Zeit)."
+        },
+        {
+            ru: "Куча — это разговорное слово.",
+            before: "Das Wort „куча“ ist ein",
+            after: "Wort.",
+            answers: ["umgangssprachliches", "informelles"],
+            displayAnswer: "umgangssprachliches",
+            desc: "Ausgezeichnet! Im Gegensatz zum neutralen „много“ nutzt man „куча“ vor allem in der Alltagssprache."
+        }
+    ];
+
+    let currentSentenceIndex = 0;
+
+    function initExercise() {
+        const currentData = dataset[currentSentenceIndex];
+        
+        // UI-Texte setzen
+        document.getElementById('progress').textContent = `Satz ${currentSentenceIndex + 1} von ${dataset.length}`;
+        document.getElementById('ru-text').textContent = currentData.ru;
+        document.getElementById('part-before').textContent = currentData.before;
+        document.getElementById('part-after').textContent = currentData.after;
+
+        // Eingabefeld zurücksetzen
+        const gapField = document.getElementById('gap-field');
+        gapField.value = "";
+        gapField.className = "gap-input";
+        gapField.disabled = false;
+        
+        // Dynamische Breite je nach Lösungswort schätzen
+        gapField.style.width = Math.max(100, (currentData.displayAnswer.length * 12 + 20)) + "px";
+
+        // Feedback- & Nav-Reset
+        document.getElementById('fb-title').textContent = "";
+        document.getElementById('fb-desc').textContent = "";
+        document.getElementById('next-btn').style.display = "none";
+
+        // Fokus direkt auf das Eingabefeld legen
+        gapField.focus();
+    }
+
+    function checkLiveAnswer() {
+        const currentData = dataset[currentSentenceIndex];
+        const gapField = document.getElementById('gap-field');
+        const inputCleaned = gapField.value.trim().toLowerCase();
+
+        // Prüfen, ob die Eingabe in der Liste der akzeptierten Antworten liegt
+        if (currentData.answers.includes(inputCleaned)) {
+            // Sofortiges direktes Erfolgsfeedback
+            gapField.className = "gap-input correct";
+            gapField.value = currentData.displayAnswer; // Korrekte Groß-/Kleinschreibung erzwingen
+            gapField.disabled = true;
+
+            const fbTitle = document.getElementById('fb-title');
+            fbTitle.textContent = "Stimmt genau! 🎉";
+            fbTitle.style.color = "var(--success-color)";
+            document.getElementById('fb-desc').textContent = currentData.desc;
+
+            // Nächsten Schritt anzeigen
+            if (currentSentenceIndex < dataset.length - 1) {
+                document.getElementById('next-btn').style.display = "block";
+            } else {
+                fbTitle.textContent = "Hervorragend! Du hast alle 6 Aufgaben gelöst! 🌟👏";
+            }
+        }
+    }
+
+    function nextSentence() {
+        if (currentSentenceIndex < dataset.length - 1) {
+            currentSentenceIndex++;
+            initExercise();
+        }
+    }
+
+    function restartExercise() {
+        currentSentenceIndex = 0;
+        initExercise();
+    }
+
+    // Beim Laden der Seite direkt starten
+    window.onload = initExercise;
+</script>
+
+</body>
+</html>
