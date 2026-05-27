@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch Übung: Lückentext mit Dropdown</title>
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --success-color: #2ecc71;
+            --error-color: #e74c3c;
+            --bg-color: #f5f7fa;
+            --card-bg: #ffffff;
+            --text-color: #2c3e50;
+            --border-color: #dcdde1;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.8;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 700px;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            margin: 20px auto;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            text-align: center;
+            color: var(--primary-color);
+        }
+
+        p.instruction {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #7f8c8d;
+            font-size: 0.95rem;
+        }
+
+        .text-card {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 25px;
+            font-size: 1.2rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .sentence-block {
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px dashed var(--border-color);
+        }
+
+        .sentence-block:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .german-translation {
+            display: block;
+            font-size: 0.95rem;
+            color: #7f8c8d;
+            line-height: 1.4;
+            margin-top: 5px;
+        }
+
+        .inline-select {
+            font-size: 1.1rem;
+            padding: 6px 10px;
+            border: 2px solid var(--border-color);
+            border-radius: 6px;
+            background-color: #fff;
+            color: var(--text-color);
+            cursor: pointer;
+            outline: none;
+            transition: all 0.2s;
+            margin: 0 5px;
+            font-weight: 500;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .select-wrapper {
+            display: inline-block;
+            position: relative;
+        }
+
+        .select-wrapper::after {
+            content: '▾';
+            font-size: 0.8rem;
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+            color: #a0a0a0;
+        }
+
+        .inline-select {
+            padding-right: 28px;
+        }
+
+        .inline-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 5px rgba(74, 144, 226, 0.2);
+        }
+
+        .inline-select.correct {
+            border-color: var(--success-color) !important;
+            background-color: #e8f8f5 !important;
+            color: #27ae60 !important;
+        }
+
+        .inline-select.wrong {
+            border-color: var(--error-color) !important;
+            background-color: #fdedec !important;
+            color: #c0392b !important;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-submit {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-submit:hover {
+            background-color: #357abd;
+        }
+
+        .btn-reset {
+            background-color: #7f8c8d;
+            color: white;
+            display: none;
+        }
+
+        .btn-reset:hover {
+            background-color: #6a7778;
+        }
+
+        .feedback-box {
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+            min-height: 30px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Grammatik im Kontext</h1>
+    <p class="instruction">Lies die Sätze und wähle die jeweils logisch und grammatikalisch passende Option aus dem Dropdown-Menü.</p>
+
+    <div class="text-card">
+        <!-- Satz 1 -->
+        <div class="sentence-block">
+            У меня сегодня 
+            <div class="select-wrapper">
+                <select class="inline-select" data-answer="куча">
+                    <option value="">...</option>
+                    <option value="куча">куча</option>
+                    <option value="много">много</option>
+                </select>
+            </div>
+            <div class="select-wrapper">
+                <select class="inline-select" data-answer="работы">
+                    <option value="">...</option>
+                    <option value="работа">работа</option>
+                    <option value="работы">работы</option>
+                </select>
+            </div>.
+            <span class="german-translation">Übersetzung: Ich habe heute einen Haufen Arbeit.</span>
+        </div>
+
+        <!-- Satz 2 -->
+        <div class="sentence-block">
+            Я слышал, что у тебя 
+            <div class="select-wrapper">
+                <select class="inline-select" data-answer="куча">
+                    <option value="">...</option>
+                    <option value="куча">куча</option>
+                    <option value="много">много</option>
+                </select>
+            </div>
+            <div class="select-wrapper">
+                <select class="inline-select" data-answer="денег">
+                    <option value="">...</option>
+                    <option value="деньги">деньги</option>
+                    <option value="денег">денег</option>
+                </select>
+            </div>.
+            <span class="german-translation">Übersetzung: Ich habe gehört, dass du einen Haufen Geld hast.</span>
+        </div>
+
+        <!-- Satz 3 (NEU) -->
+        <div class="sentence-block">
+            У неё всегда 
+            <div class="select-wrapper">
+                <select class="inline-select" data-answer="куча">
+                    <option value="">...</option>
+                    <option value="куча">куча</option>
+                    <option value="много">много</option>
+                </select>
+            </div>
+            <div class="select-wrapper">
+                <select class="inline-select" data-answer="планов">
+                    <option value="">...</option>
+                    <option value="планы">планы</option>
+                    <option value="планов">планов</option>
+                </select>
+            </div> на выходные.
+            <span class="german-translation">Übersetzung: Sie hat fürs Wochenende immer einen Haufen Pläne.</span>
+        </div>
+
+        <!-- Satz 4 (NEU) -->
+        <div class="sentence-block">
+            В библиотеке есть 
+            <div class="select-wrapper">
+                <select class="inline-select" data-answer="много">
+                    <option value="">...</option>
+                    <option value="куча">куча</option>
+                    <option value="много">много</option>
+                </select>
+            </div>
+            <div class="select-wrapper">
+                <select class="inline-select" data-answer="книг">
+                    <option value="">...</option>
+                    <option value="книги">книги</option>
+                    <option value="книг">книг</option>
+                </select>
+            </div>.
+            <span class="german-translation">Übersetzung (neutraler Stil): In der Bibliothek gibt es viele Bücher.</span>
+        </div>
+
+        <!-- Satz 5 (NEU) -->
+        <div class="sentence-block">
+            У нас дома 
+            <div class="select-wrapper">
+                <select class="inline-select" data-answer="куча">
+                    <option value="">...</option>
+                    <option value="куча">куча</option>
+                    <option value="много">много</option>
+                </select>
+            </div>
+            <div class="select-wrapper">
+                <select class="inline-select" data-answer="времени">
+                    <option value="">...</option>
+                    <option value="время">время</option>
+                    <option value="времени">времени</option>
+                </select>
+            </div>.
+            <span class="german-translation">Übersetzung: Wir haben zu Hause einen Haufen Zeit.</span>
+        </div>
+
+        <!-- Satz 6 (NEU) -->
+        <div class="sentence-block">
+            Я знаю, что у них сегодня 
+            <div class="select-wrapper">
+                <select class="inline-select" data-answer="много">
+                    <option value="">...</option>
+                    <option value="куча">куча</option>
+                    <option value="много">много</option>
+                </select>
+            </div>
+            <div class="select-wrapper">
+                <select class="inline-select" data-answer="дел">
+                    <option value="">...</option>
+                    <option value="дела">дела</option>
+                    <option value="дел">дел</option>
+                </select>
+            </div>.
+            <span class="german-translation">Übersetzung (neutraler Stil): Ich weiß, dass sie heute viele Aufgaben/zu tun haben.</span>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="btn btn-submit" id="submit-btn" onclick="checkAnswers()">Überprüfen</button>
+        <button class="btn btn-reset" id="reset-btn" onclick="resetExercise()">Neu starten</button>
+    </div>
+
+    <div class="feedback-box" id="feedback-text"></div>
+</div>
+
+<script>
+    function checkAnswers() {
+        const dropdowns = document.querySelectorAll('.inline-select');
+        const feedback = document.getElementById('feedback-text');
+        const submitBtn = document.getElementById('submit-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        
+        let allSelected = true;
+        let correctCount = 0;
+
+        dropdowns.forEach(select => {
+            if (select.value === "") {
+                allSelected = false;
+            }
+        });
+
+        if (!allSelected) {
+            feedback.textContent = "Bitte fülle zuerst alle Lücken aus!";
+            feedback.style.color = "var(--error-color)";
+            return;
+        }
+
+        dropdowns.forEach(select => {
+            select.disabled = true;
+            const correctValue = select.getAttribute('data-answer');
+            
+            if (select.value === correctValue) {
+                select.classList.add('correct');
+                correctCount++;
+            } else {
+                select.classList.add('wrong');
+            }
+        });
+
+        if (correctCount === dropdowns.length) {
+            feedback.textContent = "Perfekt! Alle Lücken sind absolut richtig ausgefüllt. 🎉";
+            feedback.style.color = "var(--success-color)";
+        } else {
+            feedback.textContent = `${correctCount} von ${dropdowns.length} richtig. Schau dir die roten Felder noch einmal an!`;
+            feedback.style.color = "var(--error-color)";
+        }
+
+        submitBtn.style.display = 'none';
+        resetBtn.style.display = 'block';
+    }
+
+    function resetExercise() {
+        const dropdowns = document.querySelectorAll('.inline-select');
+        const feedback = document.getElementById('feedback-text');
+        const submitBtn = document.getElementById('submit-btn');
+        const resetBtn = document.getElementById('reset-btn');
+
+        dropdowns.forEach(select => {
+            select.value = "";
+            select.disabled = false;
+            select.classList.remove('correct', 'wrong');
+        });
+
+        feedback.textContent = "";
+        submitBtn.style.display = 'block';
+        resetBtn.style.display = 'none';
+    }
+</script>
+
+</body>
+</html>
