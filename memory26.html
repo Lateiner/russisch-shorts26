@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch Übung: Memory</title>
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --success-color: #2ecc71;
+            --bg-color: #f5f7fa;
+            --card-bg: #ffffff;
+            --card-back: #34495e;
+            --text-color: #2c3e50;
+            --border-color: #dcdde1;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 650px;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            text-align: center;
+            color: var(--primary-color);
+        }
+
+        p.instruction {
+            text-align: center;
+            margin-bottom: 25px;
+            color: #7f8c8d;
+            font-size: 0.95rem;
+        }
+
+        /* Responsives Memory-Grid */
+        .memory-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 25px;
+            perspective: 1000px; /* Für den 3D-Dreheffekt */
+        }
+
+        @media (min-width: 480px) {
+            .memory-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (min-width: 600px) {
+            .memory-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        /* Karten-Struktur */
+        .memory-card {
+            height: 110px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.4s ease, opacity 0.8s ease;
+            cursor: pointer;
+        }
+
+        .memory-card.flipped {
+            transform: rotateY(180deg);
+        }
+
+        /* Langsames Verschwinden */
+        .memory-card.fade-out {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 10px;
+            font-size: 1rem;
+            font-weight: 500;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .card-back {
+            background-color: var(--card-back);
+            color: white;
+            border: 2px solid var(--card-back);
+        }
+
+        .card-back::after {
+            content: '?';
+            font-size: 1.8rem;
+            color: rgba(255, 255, 255, 0.3);
+            font-weight: bold;
+        }
+
+        .card-front {
+            background-color: #fff;
+            border: 2px solid var(--primary-color);
+            color: var(--text-color);
+            transform: rotateY(180deg);
+        }
+
+        /* Spezialfarbe für gefundene Paare direkt vor dem Ausblenden */
+        .memory-card.matched .card-front {
+            border-color: var(--success-color);
+            background-color: #e8f8f5;
+            color: #27ae60;
+        }
+
+        .feedback-area {
+            text-align: center;
+            min-height: 35px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+            color: var(--success-color);
+        }
+
+        .btn-reset {
+            display: block;
+            width: 180px;
+            margin: 0 auto;
+            padding: 12px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-reset:hover {
+            background-color: #357abd;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Kartenpaare aufdecken</h1>
+    <p class="instruction">Finde die zusammengehörenden Paare aus russischem Ausdruck und deutscher Übersetzung!</p>
+
+    <div class="memory-grid" id="grid">
+        <!-- Karten werden dynamisch via JS erzeugt -->
+    </div>
+
+    <div class="feedback-area" id="feedback"></div>
+    <button class="btn-reset" onclick="initGame()">Neustart</button>
+</div>
+
+<script>
+    // Die Rohdaten der Paare
+    const dataPairs = [
+        { text: "куча", pairId: 1 },
+        { text: "ein Haufen", pairId: 1 },
+        { text: "много", pairId: 2 },
+        { text: "viel", pairId: 2 },
+        { text: "куча работы", pairId: 3 },
+        { text: "ein Haufen Arbeit", pairId: 3 },
+        { text: "куча денег", pairId: 4 },
+        { text: "ein Haufen Geld", pairId: 4 }
+    ];
+
+    let flippedCards = [];
+    let lockBoard = false;
+    let matchesFound = 0;
+
+    function initGame() {
+        const grid = document.getElementById('grid');
+        const feedback = document.getElementById('feedback');
+        
+        // Reset Status
+        grid.innerHTML = '';
+        feedback.textContent = '';
+        flippedCards = [];
+        lockBoard = false;
+        matchesFound = 0;
+
+        // Karten kopieren und zufällig mischen
+        const shuffledCards = [...dataPairs].sort(() => Math.random() - 0.5);
+
+        // Karten im Grid erzeugen
+        shuffledCards.forEach(cardData => {
+            const card = document.createElement('div');
+            card.className = 'memory-card';
+            card.dataset.pairId = cardData.pairId;
+
+            const back = document.createElement('div');
+            back.className = 'card-face card-back';
+
+            const front = document.createElement('div');
+            front.className = 'card-face card-front';
+            front.textContent = cardData.text;
+
+            card.appendChild(back);
+            card.appendChild(front);
+            
+            card.onclick = () => flipCard(card);
+            grid.appendChild(card);
+        });
+    }
+
+    function flipCard(card) {
+        if (lockBoard) return;
+        if (card.classList.contains('flipped')) return;
+        if (card.classList.contains('fade-out')) return;
+
+        card.classList.add('flipped');
+        flippedCards.push(card);
+
+        if (flippedCards.length === 2) {
+            checkMatch();
+        }
+    }
+
+    function checkMatch() {
+        const [card1, card2] = flippedCards;
+        const isMatch = card1.dataset.pairId === card2.dataset.pairId;
+
+        if (isMatch) {
+            disableCards();
+        } else {
+            unflipCards();
+        }
+    }
+
+    function disableCards() {
+        lockBoard = true;
+        matchesFound++;
+
+        const [card1, card2] = flippedCards;
+
+        // Visuelles Feedback für richtiges Paar setzen
+        card1.classList.add('matched');
+        card2.classList.add('matched');
+
+        // Nach einer kurzen Pause die gefundenen Karten langsam verschwinden lassen
+        setTimeout(() => {
+            card1.classList.add('fade-out');
+            card2.classList.add('fade-out');
+            
+            flippedCards = [];
+            lockBoard = false;
+
+            // Prüfen, ob das Spiel vollständig gelöst wurde
+            if (matchesFound === dataPairs.length / 2) {
+                document.getElementById('feedback').textContent = "Hervorragend! Du hast alle Paare gefunden. 🎉";
+            }
+        }, 600);
+    }
+
+    function unflipCards() {
+        lockBoard = true;
+
+        // Wenn nicht identisch, nach einer Sekunde wieder umdrehen
+        setTimeout(() => {
+            flippedCards[0].classList.remove('flipped');
+            flippedCards[1].classList.remove('flipped');
+            
+            flippedCards = [];
+            lockBoard = false;
+        }, 1000);
+    }
+
+    // Spiel direkt beim Laden initialisieren
+    window.onload = initGame;
+</script>
+
+</body>
+</html>
