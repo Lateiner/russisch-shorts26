@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch Übung: Kategorisierung</title>
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --success-color: #2ecc71;
+            --error-color: #e74c3c;
+            --bg-color: #f5f7fa;
+            --card-bg: #ffffff;
+            --text-color: #2c3e50;
+            --border-color: #dcdde1;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 750px;
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+            text-align: center;
+            color: var(--primary-color);
+        }
+
+        .progress-text {
+            text-align: center;
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            margin-bottom: 20px;
+        }
+
+        p.instruction {
+            text-align: center;
+            margin-bottom: 25px;
+            font-size: 0.95rem;
+            color: #57606f;
+            background: #f0f7ff;
+            padding: 8px;
+            border-radius: 6px;
+        }
+
+        /* Der aktuelle Satz, der einsortiert werden muss */
+        .card-to-sort {
+            background: #fff;
+            border: 2px solid var(--primary-color);
+            border-radius: 8px;
+            padding: 25px 15px;
+            text-align: center;
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #2c3e50;
+            box-shadow: 0 4px 10px rgba(74, 144, 226, 0.1);
+            margin-bottom: 25px;
+            min-height: 110px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .card-to-sort .translation {
+            font-size: 0.95rem;
+            font-weight: normal;
+            color: #7f8c8d;
+        }
+
+        /* Das Körbe-System (Nebeneinander am Desktop, untereinander auf Mobilgeräten) */
+        .basket-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        @media (max-width: 550px) {
+            .basket-container {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+        }
+
+        .basket {
+            background: #f8f9fa;
+            border: 2px dashed var(--border-color);
+            border-radius: 10px;
+            padding: 20px 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .basket-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .basket-desc {
+            font-size: 0.85rem;
+            color: #7f8c8d;
+        }
+
+        /* Körbe Farb-Styles */
+        .basket-slang { border-color: #f39c12; color: #d35400; }
+        .basket-standard { border-color: #3498db; color: #2980b9; }
+
+        @media (hover: hover) {
+            .basket-slang:hover { background: #fef5e7; border-color: #e67e22; }
+            .basket-standard:hover { background: #ebf5fb; border-color: #2980b9; }
+        }
+
+        /* Animations-Klassen für Feedback */
+        .basket.basket-success {
+            background-color: #e8f8f5 !important;
+            border-color: var(--success-color) !important;
+            color: #27ae60 !important;
+            transform: scale(1.03);
+        }
+
+        .basket.basket-error {
+            background-color: #fdedec !important;
+            border-color: var(--error-color) !important;
+            color: #c0392b !important;
+            animation: shake 0.4s ease;
+        }
+
+        /* Feedback Bereich unten */
+        .feedback-area {
+            text-align: center;
+            min-height: 50px;
+            font-weight: 500;
+            font-size: 1rem;
+            margin-bottom: 20px;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+        }
+
+        .btn-reset {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            background-color: #7f8c8d;
+            color: white;
+            transition: background 0.2s;
+        }
+
+        .btn-reset:hover {
+            background-color: #6a7778;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-6px); }
+            40%, 80% { transform: translateX(6px); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Sätze kategorisieren</h1>
+    <div class="progress-text" id="progress">Satz 1 von 6</div>
+    <p class="instruction">Klicke oder tippe auf den passenden Korb, um den blauen Satz oben richtig einzusortieren.</p>
+
+    <!-- Aktueller Satz -->
+    <div class="card-to-sort" id="sentence-card">
+        <div id="ru-text">Загрузка...</div>
+        <div class="translation" id="de-text">Lade Übersetzung...</div>
+    </div>
+
+    <!-- Die zwei Körbe -->
+    <div class="basket-container">
+        <div class="basket basket-slang" id="basket-slang" onclick="sortTo('slang')">
+            <div class="basket-title">Viel (Umgangssprache)</div>
+            <div class="basket-desc">Sätze mit „куча“ (Haufen)</div>
+        </div>
+        <div class="basket basket-standard" id="basket-standard" onclick="sortTo('standard')">
+            <div class="basket-title">Viel (Standardsprache)</div>
+            <div class="basket-desc">Sätze mit „много“ (neutral)</div>
+        </div>
+    </div>
+
+    <div class="feedback-area" id="feedback-text"></div>
+
+    <div class="controls">
+        <button class="btn-reset" onclick="restartExercise()">Neustart</button>
+    </div>
+</div>
+
+<script>
+    const items = [
+        {
+            ru: "У меня сегодня куча работы.",
+            de: "Ich habe heute einen Haufen Arbeit.",
+            category: "slang",
+            hint: "Richtig! „куча“ macht den Satz sehr informell und umgangssprachlich."
+        },
+        {
+            ru: "У меня heute много работы.",
+            de: "Ich habe heute viel Arbeit.",
+            category: "standard",
+            hint: "Korrekte Zuordnung! „много“ ist die neutrale Standardsprache."
+        },
+        {
+            ru: "Я слышал, что у тебя куча денег.",
+            de: "Ich habe gehört, dass du einen Haufen Geld hast.",
+            category: "slang",
+            hint: "Sehr gut! Typischer Alltagsausdruck mit „куча“."
+        },
+        {
+            ru: "Я слышал, что у тебя много денег.",
+            de: "Ich habe gehört, dass du viel Geld hast.",
+            category: "standard",
+            hint: "Klasse! Sachlich und neutral ausgedrückt mit „много“."
+        },
+        {
+            ru: "У неё всегда куча планов.",
+            de: "Sie hat immer einen Haufen Pläne.",
+            category: "slang",
+            hint: "Stimmt genau! „куча“ beschreibt hier bildhaft die Masse an Plänen."
+        },
+        {
+            ru: "У нас дома много времени.",
+            de: "Wir haben zu Hause viel Zeit.",
+            category: "standard",
+            hint: "Ausgezeichnet! Der Standard-Korb ist für „много“ absolut richtig."
+        }
+    ];
+
+    let currentIndex = 0;
+    let isAnimating = false;
+
+    function initCard() {
+        if (currentIndex >= items.length) {
+            handleExerciseComplete();
+            return;
+        }
+
+        const currentItem = items[currentIndex];
+        document.getElementById('progress').textContent = `Satz ${currentIndex + 1} von ${items.length}`;
+        document.getElementById('ru-text').textContent = currentItem.ru;
+        document.getElementById('de-text').textContent = currentItem.de;
+        document.getElementById('feedback-text').textContent = "";
+        isAnimating = false;
+    }
+
+    function sortTo(selectedCategory) {
+        if (isAnimating || currentIndex >= items.length) return;
+        
+        const currentItem = items[currentIndex];
+        const targetBasketId = selectedCategory === 'slang' ? 'basket-slang' : 'basket-standard';
+        const basketElement = document.getElementById(targetBasketId);
+        const feedbackElement = document.getElementById('feedback-text');
+
+        if (selectedCategory === currentItem.category) {
+            // Richtig einsortiert
+            isAnimating = true;
+            basketElement.classList.add('basket-success');
+            feedbackElement.textContent = currentItem.hint;
+            feedbackElement.style.color = "var(--success-color)";
+
+            setTimeout(() => {
+                basketElement.classList.remove('basket-success');
+                currentIndex++;
+                initCard();
+            }, 1200);
+
+        } else {
+            // Falsch einsortiert
+            isAnimating = true;
+            basketElement.classList.add('basket-error');
+            feedbackElement.textContent = "Nicht ganz! Schau dir das Signalwort (куча oder много) noch einmal an.";
+            feedbackElement.style.color = "var(--error-color)";
+
+            setTimeout(() => {
+                basketElement.classList.remove('basket-error');
+                isAnimating = false;
+            }, 500);
+        }
+    }
+
+    function handleExerciseComplete() {
+        document.getElementById('progress').textContent = `Übung beendet`;
+        document.getElementById('ru-text').textContent = "Großartige Leistung! 🎉";
+        document.getElementById('de-text').textContent = "Du hast alle Sätze fehlerfrei den Stilrichtungen zugeordnet.";
+        document.getElementById('feedback-text').textContent = "Perfekt! Du kennst nun den Unterschied zwischen Umgangs- und Standardsprache. 🌟";
+        document.getElementById('feedback-text').style.color = "var(--success-color)";
+    }
+
+    function restartExercise() {
+        currentIndex = 0;
+        initCard();
+    }
+
+    // Beim Laden direkt die erste Karte generieren
+    window.onload = initCard;
+</script>
+
+</body>
+</html>
