@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch Übung: Interaktive Umfrage</title>
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --success-color: #2ecc71;
+            --bg-color: #f5f7fa;
+            --card-bg: #ffffff;
+            --text-color: #2c3e50;
+            --border-color: #dcdde1;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background: var(--card-bg);
+            padding: 35px 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        h1 {
+            font-size: 1.6rem;
+            margin-bottom: 5px;
+            text-align: center;
+            color: var(--primary-color);
+        }
+
+        .subtitle {
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: #7f8c8d;
+            margin-bottom: 25px;
+        }
+
+        p.instruction {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 0.95rem;
+            color: #57606f;
+        }
+
+        /* Umfrage-Optionen als große Textboxen/Karten */
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 480px) {
+            .options-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .option-card {
+            background: #fff;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .option-title {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 5px;
+        }
+
+        .option-translation {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+        }
+
+        @media (hover: hover) {
+            .option-card:hover {
+                border-color: var(--primary-color);
+                background-color: #f0f7ff;
+                transform: translateY(-2px);
+            }
+        }
+
+        /* Diagramm-Ansicht (Standardmäßig versteckt) */
+        .results-container {
+            display: none;
+            margin-bottom: 30px;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .result-row {
+            margin-bottom: 18px;
+        }
+
+        .result-labels {
+            display: flex;
+            justify-content: space-between;
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 5px;
+        }
+
+        .result-labels .translation-label {
+            font-weight: normal;
+            color: #7f8c8d;
+            margin-left: 5px;
+        }
+
+        /* Prozentbalken */
+        .bar-bg {
+            background-color: #eceff1;
+            border-radius: 20px;
+            height: 24px;
+            width: 100%;
+            overflow: hidden;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .bar-fill {
+            background-color: var(--primary-color);
+            height: 100%;
+            width: 0%; /* Wird via JS animiert */
+            transition: width 1s cubic-bezier(0.1, 0.8, 0.3, 1);
+            border-radius: 20px;
+        }
+
+        .user-choice .bar-fill {
+            background-color: var(--success-color);
+        }
+
+        .user-badge {
+            background: var(--success-color);
+            color: white;
+            font-size: 0.75rem;
+            padding: 2px 6px;
+            border-radius: 10px;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+
+        /* Steuerung */
+        .controls {
+            display: flex;
+            justify-content: center;
+        }
+
+        .btn-reset {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            background-color: #7f8c8d;
+            color: white;
+            transition: background 0.2s;
+            display: none;
+        }
+
+        .btn-reset:hover {
+            background-color: #6a7778;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Interaktive Umfrage</h1>
+    <div class="subtitle">А чего у вас куча?</div>
+    <p class="instruction" id="instruction-text">Und wovon habt ihr einen Haufen? Wähle die Option aus, die am besten auf dein Leben zutrifft, um die Ergebnisse der Klasse zu sehen.</p>
+
+    <!-- Phase 1: Optionen zur Auswahl -->
+    <div class="options-grid" id="options-grid">
+        <div class="option-card" onclick="submitVote('дел')">
+            <div class="option-title">дел</div>
+            <div class="option-translation">(Aufgaben / To-dos)</div>
+        </div>
+        <div class="option-card" onclick="submitVote('времени')">
+            <div class="option-title">времени</div>
+            <div class="option-translation">(Zeit)</div>
+        </div>
+        <div class="option-card" onclick="submitVote('книг')">
+            <div class="option-title">книг</div>
+            <div class="option-translation">(Bücher)</div>
+        </div>
+        <div class="option-card" onclick="submitVote('планов')">
+            <div class="option-title">планов</div>
+            <div class="option-translation">(Pläne)</div>
+        </div>
+    </div>
+
+    <!-- Phase 2: Live-Ergebnisse als Diagramm -->
+    <div class="results-container" id="results-container">
+        <!-- Dyn. generiert via JS -->
+    </div>
+
+    <div class="controls">
+        <button class="btn-reset" id="reset-btn" onclick="resetSurvey()">Noch mal abstimmen</button>
+    </div>
+</div>
+
+<script>
+    // Definition der Umfrage-Optionen
+    const surveyOptions = {
+        "дел": { de: "Aufgaben", baseVotes: 45 },
+        "времени": { de: "Zeit", baseVotes: 12 },
+        "книг": { de: "Bücher", baseVotes: 22 },
+        "планов": { de: "Pläne", baseVotes: 38 }
+    };
+
+    function submitVote(selectedKey) {
+        const grid = document.getElementById('options-grid');
+        const resultsContainer = document.getElementById('results-container');
+        const instruction = document.getElementById('instruction-text');
+        const resetBtn = document.getElementById('reset-btn');
+
+        // Phase 1 verstecken, Phase 2 vorbereiten
+        grid.style.display = 'none';
+        instruction.textContent = "Interessant! So sieht das aktuelle Stimmungsbild deiner Klasse aus (grün markiert ist deine Antwort):";
+        resultsContainer.style.display = 'block';
+        resetBtn.style.display = 'block';
+
+        // Stimmen für diese Session generieren (Basisdaten + kleiner Zufallsfaktor für Realismus)
+        let totalVotes = 0;
+        const currentSessionVotes = {};
+
+        for (const [key, data] of Object.entries(surveyOptions)) {
+            let randomModifier = Math.floor(Math.random() * 7) - 3; // Wert zwischen -3 und +3
+            let votes = Math.max(5, data.baseVotes + randomModifier);
+            
+            // Die Stimme des aktuellen Nutzers dazurechnen
+            if (key === selectedKey) {
+                votes += 1;
+            }
+            
+            currentSessionVotes[key] = votes;
+            totalVotes += votes;
+        }
+
+        // HTML für das Diagramm aufbauen
+        resultsContainer.innerHTML = '';
+        
+        for (const [key, votes] of Object.entries(currentSessionVotes)) {
+            const percentage = Math.round((votes / totalVotes) * 100);
+            const isUserChoice = (key === selectedKey);
+
+            const row = document.createElement('div');
+            row.className = `result-row ${isUserChoice ? 'user-choice' : ''}`;
+
+            row.innerHTML = `
+                <div class="result-labels">
+                    <div>
+                        <span>${key}</span>
+                        <span class="translation-label">(${surveyOptions[key].de})</span>
+                        ${isUserChoice ? '<span class="user-badge">Deine Wahl</span>' : ''}
+                    </div>
+                    <div>${percentage}%</div>
+                </div>
+                <div class="bar-bg">
+                    <div class="bar-fill" id="bar-${key}"></div>
+                </div>
+            `;
+            resultsContainer.appendChild(row);
+
+            // Die Animation der Balken leicht verzögert triggern, damit sie flüssig wachsen
+            setTimeout(() => {
+                const bar = document.getElementById(`bar-${key}`);
+                if (bar) bar.style.width = `${percentage}%`;
+            }, 50);
+        }
+    }
+
+    function resetSurvey() {
+        document.getElementById('options-grid').style.display = 'grid';
+        document.getElementById('results-container').style.display = 'none';
+        document.getElementById('reset-btn').style.display = 'none';
+        document.getElementById('instruction-text').textContent = "Und wovon habt ihr einen Haufen? Wähle die Option aus, die am besten auf dein Leben zutrifft, um die Ergebnisse der Klasse zu sehen.";
+    }
+</script>
+
+</body>
+</html>
